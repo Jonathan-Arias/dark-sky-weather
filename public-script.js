@@ -10,41 +10,54 @@ window.onload = () => {
     function success(position) {
         let latitude = position.coords.latitude;
         let longitude = position.coords.longitude;
-        getWeather(latitude, longitude);
+
+        let darkSkyURL = `https://api.darksky.net/forecast/YOUR_API_KEY_HERE/${latitude},${longitude}`;
+        AJAXget(darkSkyURL, setWeather);
+
+        let googleMapsURL = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=YOUR_API_KEY_HERE`;
+        AJAXget(googleMapsURL, setLocation);
+
+        setDate();
     }
 
     function error() {
         output.innerHTML = "Unable to retrieve your location";
     }
 
-    function processHTTP(http) {
+    function AJAXget(url, callback) {
+        let http = new XMLHttpRequest();
+        http.open('GET', url, true);
+        http.send();
         http.onreadystatechange = () => {
-            // 4: request is complete, 200: OK
             if (http.readyState == 4 && http.status == 200) {
-                try {
-                    var data = JSON.parse(http.response);
-                    console.log(data);
-                } catch (err) {
-                    console.log(err);
-                }
-                output.innerHTML = `It is currently ${data.currently.temperature}° Fahrenheit`;
+                callback(JSON.parse(http.response));
             }
         }
     }
 
-    function getWeather(latitude, longitude) {
-        let urlString = `https://api.darksky.net/forecast/API_KEY_GOES_HERE/${latitude},${longitude}`;
-
-        let http = new XMLHttpRequest();
-
-        // Third parameter determines if request is/isn't asynchronous
-        http.open('GET', urlString, true);
-        http.send();
-
-        processHTTP(http);
+    function setWeather(data) {
+        output.innerHTML = `${Math.round(data.currently.temperature)}° Fahrenheit`;
+        setSkycon(data.currently.icon);
     }
 
-    output.innerHTML = "<p>Locating...</p>"
+    function setSkycon(currentWeather) {
+        var skycons = new Skycons({ "color": "teal" });
+        skycons.add("icon1", currentWeather);
+        skycons.play();
+    }
+
+    function setLocation(data) {
+        document.getElementById("location").innerHTML = "<em>" + data.results[2].address_components[0].short_name + "</em>";
+    }
+
+    function setDate() {
+        let currentDate = new Date();
+        // let year = currentDate.getFullYear();
+        // let month = currentDate.getMonth();
+        // let date = currentDate.getDate();
+        // let day = currentDate.getDay();
+        document.getElementById("date").innerHTML = currentDate.toDateString();
+    }
 
     navigator.geolocation.getCurrentPosition(success, error);
 }
