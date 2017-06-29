@@ -47,7 +47,7 @@ window.onload = () => {
     }
 
     function setLocation(data) {
-        document.getElementById("location").innerHTML = "<em>" + data.results[2].address_components[0].short_name + "</em>";
+    	document.getElementById("location").innerHTML = "<em>" + data.results[0].formatted_address + "</em>";
     }
 
     function setDate() {
